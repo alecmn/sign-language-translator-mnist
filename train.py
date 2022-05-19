@@ -5,41 +5,31 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 
 from preprocessing import get_train_test_loader
+from networks import BaseNet, SmallNet, LargeNet
 
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 6, 3)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 6, 3)
-        self.conv3 = nn.Conv2d(6, 16, 3)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 48)
-        self.fc3 = nn.Linear(48, 24)
+def loadNet(netname):
+    if netname == 'BaseNet':
+        net = BaseNet().float()
+    if netname == 'SmallNet':
+        net = SmallNet().float()
+    if netname == 'LargeNet':
+        net = LargeNet().float()
 
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = self.pool(x)
-        x = F.relu(self.conv3(x))
-        x = self.pool(x)
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
+    return net
 
 
 def main():
-    net = Net().float()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+    for name in ['SmallNet']:
+        print(f"Running {name}")
+        net = loadNet(name)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
 
-    trainloader, _ = get_train_test_loader()
-    for epoch in range(2):
-        train(net, criterion, optimizer, trainloader, epoch)
-    torch.save(net.state_dict(), "model_params.pth")
+        trainloader, _ = get_train_test_loader()
+        for epoch in range(20):
+            train(net, criterion, optimizer, trainloader, epoch)
+        torch.save(net.state_dict(), f"model_params_{name}2.pth")
 
 
 def train(net, criterion, optimizer, trainloader, epoch):
