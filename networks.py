@@ -56,7 +56,7 @@ class LargeNet(nn.Module):
         self.conv3 = nn.Conv2d(6, 6, 3)
         self.conv4 = nn.Conv2d(6, 6, 3)
 
-        self.conv5 = nn.Conv2d(6, 16, 3)
+        # self.conv5 = nn.Conv2d(6, 16, 3)
         # self.conv6 = nn.Conv2d(6, 16, 3)
 
         self.fc1 = nn.Linear(512, 120)
@@ -77,10 +77,10 @@ class LargeNet(nn.Module):
         x = F.relu(self.conv4(x))
         x = self.pool(x)
         x = self.dropout1(x)
-        x = F.relu(self.conv5(x))
+        # x = F.relu(self.conv5(x))
         # x = F.relu(self.conv6(x))
-        x = self.pool(x)
-        x = self.dropout1(x)
+        # x = self.pool(x)
+        # x = self.dropout1(x)
         x = x.view(-1, 512)
         x = self.fc1(x)
         x = self.dropout2(x)
