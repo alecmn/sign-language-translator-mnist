@@ -131,4 +131,4 @@ dmypy.json
 
 #dataset 
 sign-language-mnist.tar.gz
-data/
+#data/
