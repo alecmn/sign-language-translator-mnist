@@ -37,7 +37,7 @@ def validate():
     trainloader, testloader = get_train_test_loader()
     net = SmallNet().float()
 
-    pretrained_model = torch.load("model_params_SmallNet2.pth")
+    pretrained_model = torch.load("models/model_params_SmallNet2.pth")
     net.load_state_dict(pretrained_model)
 
     print('=' * 10, 'Pytorch', '=' * 10)

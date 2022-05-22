@@ -29,7 +29,7 @@ def main():
         trainloader, _ = get_train_test_loader()
         for epoch in range(20):
             train(net, criterion, optimizer, trainloader, epoch)
-        torch.save(net.state_dict(), f"model_params_{name}2.pth")
+        torch.save(net.state_dict(), f"models/model_params_{name}2.pth")
 
 
 def train(net, criterion, optimizer, trainloader, epoch):
