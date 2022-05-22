@@ -6,6 +6,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 
+import os
 import numpy as np 
 import matplotlib.pyplot as plt 
 
@@ -25,6 +26,7 @@ def loadNet(netname):
 
 
 def main():
+    os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     for name in ['SmallNet']:
         print(f"Running {name}")
         net = loadNet(name)
@@ -33,14 +35,13 @@ def main():
 
         trainloader, testloader = get_train_test_loader()
 
-
         train_losses = []
         train_accs = []
 
         test_losses = []
         test_accs = []
 
-        for epoch in range(20):
+        for epoch in range(2):
             train_loss, train_acc = train(net, criterion, optimizer, trainloader, epoch)
 
             test_loss, test_acc = test(net, criterion, testloader)
@@ -53,30 +54,31 @@ def main():
         
         torch.save(net.state_dict(), f"models/model_params_{name}3.pth")
 
-        plot_learning_curves((train_losses, test_losses), (train_accs, test_accs))
+        print("Plotting ")
+
+        plot_learning_curves([train_losses, test_losses], [train_accs, test_accs], 2)
 
 
 def plot_learning_curves(losses, accs, epochs):
     fig, axes = plt.subplots(2)
     plt.title('Learning curve')
 
+    x = np.linspace(0, epochs-1, epochs)
+
+    print(x)
+    print(losses)
     
-    x = np.linspace(0, epochs, epochs)
-    
-    lc_train = axes[0].plot(x, losses[0], color='red')
-    lc_test = axes[0].plot(x, losses[1], color='red')
+    axes[0].plot(x, losses[0], color='red')
+    axes[0].plot(x, losses[1], color='red')
     axes[0].set_xlabel('epoch')
     axes[0].set_ylabel('loss')
 
-    lc_train = axes[1].plot(x, accs[0], color='red')
-    lc_test = axes[1].plot(x, accs[1], color='red')
+    axes[1].plot(x, accs[0], color='red')
+    axes[1].plot(x, accs[1], color='red')
     axes[1].set_xlabel('epoch')
     axes[1].set_ylabel('accuracy')
 
     plt.show()
-
-
-
 
 
 def train(net, criterion, optimizer, trainloader, epoch):
@@ -105,17 +107,19 @@ def train(net, criterion, optimizer, trainloader, epoch):
 
 
 def test(net, criterion, test_loader):
+    print("Testing")
     running_loss = 0.0
     total = 0 
     correct = 0 
 
     with torch.no_grad():   
         for data in test_loader:
-            inputs, labels = data 
+            inputs = Variable(data['image'].float())
+            labels = Variable(data['label'].long())
 
             #forward pass 
             outputs = net(inputs)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels[:, 0])
 
         running_loss += loss.item()
         
@@ -123,13 +127,8 @@ def test(net, criterion, test_loader):
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
+    print("Testing done")
     return running_loss/len(test_loader), 100*correct/total
-
-            
-
-
-
-
 
 
 if __name__ == '__main__':
