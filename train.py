@@ -41,29 +41,41 @@ def main():
         test_losses = []
         test_accs = []
 
-        for epoch in range(2):
+        for epoch in range(5):
             train_loss, train_acc = train(net, criterion, optimizer, trainloader, epoch)
 
             test_loss, test_acc = test(net, criterion, testloader)
 
             train_losses.append(train_loss)
-            train_accs.append(train_accs)
+            train_accs.append(train_acc)
 
             test_losses.append(test_loss)
             test_accs.append(test_acc)
+
+        print("Plotting ")
+        test_plot([train_losses, test_losses], [train_accs, test_accs], 5)
+        # plot_learning_curves([train_losses, test_losses], [train_accs, test_accs], 2)
         
         torch.save(net.state_dict(), f"models/model_params_{name}3.pth")
 
-        print("Plotting ")
+        
 
-        plot_learning_curves([train_losses, test_losses], [train_accs, test_accs], 2)
+        
+
+
+def test_plot(losses, accs, epochs): 
+    x = np.linspace(0,epochs, epochs)
+    plt.plot(x, accs[0], label='Training Loss')
+    plt.plot(x, accs[1], label='Validation Loss')
+    plt.legend()
+    plt.show() 
 
 
 def plot_learning_curves(losses, accs, epochs):
     fig, axes = plt.subplots(2)
     plt.title('Learning curve')
 
-    x = np.linspace(0, epochs-1, epochs)
+    x = np.linspace(0, epochs, len(losses[0]))
 
     print(x)
     print(losses)
@@ -78,7 +90,7 @@ def plot_learning_curves(losses, accs, epochs):
     axes[1].set_xlabel('epoch')
     axes[1].set_ylabel('accuracy')
 
-    plt.show()
+    fig.show()
 
 
 def train(net, criterion, optimizer, trainloader, epoch):
@@ -103,7 +115,7 @@ def train(net, criterion, optimizer, trainloader, epoch):
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-        return running_loss/len(trainloader), 100*correct/total
+    return running_loss/len(trainloader), 100*correct/total
 
 
 def test(net, criterion, test_loader):
