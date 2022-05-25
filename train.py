@@ -1,5 +1,7 @@
 from cProfile import label
 from turtle import color
+
+import matplotlib
 import torch
 from torch import nn, optim
 from torch.autograd import Variable
@@ -27,7 +29,9 @@ def loadNet(netname):
 
 def main():
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-    for name in ['SmallNet']:
+    matplotlib.use('TkAgg')
+    print(matplotlib.rcParams['backend'])
+    for name in ['BaseNet']:
         print(f"Running {name}")
         net = loadNet(name)
         criterion = nn.CrossEntropyLoss()
@@ -41,7 +45,9 @@ def main():
         test_losses = []
         test_accs = []
 
-        for epoch in range(5):
+        epochs = 20
+
+        for epoch in range(epochs):
             train_loss, train_acc = train(net, criterion, optimizer, trainloader, epoch)
 
             test_loss, test_acc = test(net, criterion, testloader)
@@ -53,44 +59,46 @@ def main():
             test_accs.append(test_acc)
 
         print("Plotting ")
-        test_plot([train_losses, test_losses], [train_accs, test_accs], 5)
-        # plot_learning_curves([train_losses, test_losses], [train_accs, test_accs], 2)
+        # test_plot([train_losses, test_losses], [train_accs, test_accs], epochs)
+        plot_learning_curves([train_losses, test_losses], [train_accs, test_accs], epochs)
         
-        torch.save(net.state_dict(), f"models/model_params_{name}3.pth")
+        torch.save(net.state_dict(), f"models/model_params_{name}2.pth")
 
-        
 
-        
+        # plot_learning_curves([train_losses, test_losses], [train_accs, test_accs], 5)
 
 
 def test_plot(losses, accs, epochs): 
     x = np.linspace(0,epochs, epochs)
-    plt.plot(x, accs[0], label='Training Loss')
-    plt.plot(x, accs[1], label='Validation Loss')
+    plt.plot(x, losses[0], label='Training Loss')
+    plt.plot(x, losses[1], label='Validation Loss')
+    plt.legend()
+    plt.show()
+    plt.plot(x, accs[0], label='Training accuracy')
+    plt.plot(x, accs[1], label='Validation Accuracy')
     plt.legend()
     plt.show() 
 
 
 def plot_learning_curves(losses, accs, epochs):
     fig, axes = plt.subplots(2)
-    plt.title('Learning curve')
+    fig.suptitle('Learning curves')
 
-    x = np.linspace(0, epochs, len(losses[0]))
+    x = np.linspace(0, epochs, epochs)
 
-    print(x)
-    print(losses)
-    
-    axes[0].plot(x, losses[0], color='red')
-    axes[0].plot(x, losses[1], color='red')
-    axes[0].set_xlabel('epoch')
+    axes[0].plot(x, losses[0], color='blue', label='Training Loss')
+    axes[0].plot(x, losses[1], color='orange', label='Validation Loss')
+    axes[0].legend()
+    axes[0].set_xlabel('epochs')
     axes[0].set_ylabel('loss')
 
-    axes[1].plot(x, accs[0], color='red')
-    axes[1].plot(x, accs[1], color='red')
-    axes[1].set_xlabel('epoch')
+    axes[1].plot(x, accs[0], color='blue', label='Training accuracy')
+    axes[1].plot(x, accs[1], color='orange', label='Validation Accuracy')
+    axes[1].legend()
+    axes[1].set_xlabel('epochs')
     axes[1].set_ylabel('accuracy')
 
-    fig.show()
+    plt.show()
 
 
 def train(net, criterion, optimizer, trainloader, epoch):
@@ -111,9 +119,10 @@ def train(net, criterion, optimizer, trainloader, epoch):
         if i % 100 == 0:
             print(f"[{epoch},{i}] loss: {running_loss / (i + 1)}")
 
+
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        correct += (predicted == labels[:, 0]).sum().item()
 
     return running_loss/len(trainloader), 100*correct/total
 
@@ -133,11 +142,11 @@ def test(net, criterion, test_loader):
             outputs = net(inputs)
             loss = criterion(outputs, labels[:, 0])
 
-        running_loss += loss.item()
-        
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+            running_loss += loss.item()
+
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels[:, 0]).sum().item()
 
     print("Testing done")
     return running_loss/len(test_loader), 100*correct/total
