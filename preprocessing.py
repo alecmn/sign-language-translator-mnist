@@ -4,7 +4,8 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import numpy as np
 import torch
-
+from PIL import Image
+import PIL
 import csv
 
 
@@ -63,6 +64,7 @@ class SignLanguageMNIST(Dataset):
         transform = transforms.Compose([
             transforms.ToPILImage(),
             transforms.RandomResizedCrop(28, scale=(0.8, 1.2)),
+
             transforms.ToTensor(),
             transforms.Normalize(mean=self._mean, std=self._std)])
 
@@ -72,13 +74,14 @@ class SignLanguageMNIST(Dataset):
         }
 
 
+
 def get_train_test_loader(batch_size=32):
     trainset = SignLanguageMNIST('data/sign_mnist_train.csv')
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 
     testset = SignLanguageMNIST('data/sign_mnist_test.csv')
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False)
-    return trainloader, testloader
+    return trainloader, testloader, trainset, testset
 
 
 if __name__ == '__main__':

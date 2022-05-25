@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 
 from preprocessing import get_train_test_loader
+from augmentation import concat_get_train_test_loader
 from networks import BaseNet, SmallNet, LargeNet
 
 
@@ -37,7 +38,8 @@ def main():
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
 
-        trainloader, testloader = get_train_test_loader()
+        # trainloader, testloader = get_train_test_loader()
+        trainloader, testloader = concat_get_train_test_loader()
 
         train_losses = []
         train_accs = []
