@@ -129,6 +129,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-#dataset 
+#dataset
 sign-language-mnist.tar.gz
 #data/
+
+.vscode/
