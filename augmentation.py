@@ -14,7 +14,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-
 class augment_SignLanguageMNIST(Dataset):
     """
     Sign Language Letters classification dataset.
@@ -71,7 +70,7 @@ class augment_SignLanguageMNIST(Dataset):
             transforms.ToPILImage(),
             transforms.RandomResizedCrop(28, scale=(0.8, 1.2)),
 
-            #data augemnetation 
+            # data augmentation
             transforms.ColorJitter(hue=0.05, saturation=0.05),
             transforms.RandomRotation(20, resample=PIL.Image.BILINEAR),
 
@@ -93,21 +92,20 @@ def AUGMENT_get_train_test_loader(batch_size=32):
 
 def concat_get_train_test_loader(batch_size=32):
     augmented_train_loader, augmented_trainset = AUGMENT_get_train_test_loader()
-    trainloader, testloader , trainset, _  = preprocessing.get_train_test_loader()
+    trainloader, testloader, trainset, _ = preprocessing.get_train_test_loader()
     concat_trainset = torch.utils.data.ConcatDataset([trainset, augmented_trainset])
-    concat_trainloader = torch.utils.data.DataLoader(dataset=concat_trainset, batch_size = 32, shuffle=True)
+    concat_trainloader = torch.utils.data.DataLoader(dataset=concat_trainset, batch_size=32, shuffle=True)
 
     return concat_trainloader, testloader
 
 
-
 augmented_train_loader, augmented_trainset = AUGMENT_get_train_test_loader()
-trainloader, _ , trainset, _  = preprocessing.get_train_test_loader()
+trainloader, _, trainset, _ = preprocessing.get_train_test_loader()
 print(len(trainloader))
 print(len(augmented_train_loader))
 
 concat_trainset = torch.utils.data.ConcatDataset([trainset, augmented_trainset])
-concat_trainloader = torch.utils.data.DataLoader(dataset=concat_trainset, batch_size = 32, shuffle=True)
+concat_trainloader = torch.utils.data.DataLoader(dataset=concat_trainset, batch_size=32, shuffle=True)
 
 print(len(concat_trainloader))
 
@@ -126,13 +124,12 @@ print(f"Labels batch shape: {train_labels.size()}")
 fig, ax = plt.subplots(2, 5)
 
 k = 0
-for i in range(2) :
+for i in range(2):
     for j in range(5):
-
         img = train_features[k].squeeze()
         label = train_labels[k]
         ax[i, j].imshow(img, cmap="gray")
-        ax[i,j].set_title(str(label))
+        ax[i, j].set_title(str(label))
         print(f"Label: {label}")
         k = k + 1
 

@@ -32,7 +32,7 @@ def main():
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     matplotlib.use('TkAgg')
     print(matplotlib.rcParams['backend'])
-    for name in ['BaseNet']:
+    for name in ['SmallNet']:
         print(f"Running {name}")
         net = loadNet(name)
         criterion = nn.CrossEntropyLoss()

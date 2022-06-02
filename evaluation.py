@@ -34,7 +34,7 @@ def batch_evaluation(net: SmallNet, dataloader: torch.utils.data.DataLoader) -> 
 
 
 def validate():
-    trainloader, testloader = get_train_test_loader()
+    trainloader, testloader, _, _ = get_train_test_loader()
     net = SmallNet().float()
 
     pretrained_model = torch.load("models/model_params_SmallNet2.pth")
@@ -46,7 +46,7 @@ def validate():
     test_acc = batch_evaluation(net, testloader) * 100
     print('Validation accuracy " %.1f' % test_acc)
 
-    trainloader, testloader = get_train_test_loader(1)
+    trainloader, testloader, _, _ = get_train_test_loader(1)
 
     # export to onnx 
     fname = 'signlanguage.onnx'
