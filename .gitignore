@@ -131,6 +131,8 @@ dmypy.json
 
 #dataset
 sign-language-mnist.tar.gz
+data/asl_alphabet_test
+data/asl_alphabet_train
 #data/
 
 .vscode/

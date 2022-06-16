@@ -4,8 +4,6 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import numpy as np
 import torch
-from PIL import Image
-import PIL
 import csv
 
 
@@ -72,7 +70,6 @@ class SignLanguageMNIST(Dataset):
             'image': transform(self._samples[idx]).float(),
             'label': torch.from_numpy(self._labels[idx]).float()
         }
-
 
 
 def get_train_test_loader(batch_size=32):
