@@ -1,10 +1,5 @@
-import os
-
 from torch.utils.data import Dataset
 from torch.autograd import Variable
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 import torch
 import numpy as np
 
@@ -16,93 +11,80 @@ from load_asl import get_train_test_loader_asl
 from networks import BaseNet, SmallNet
 
 
-def evaluate(outputs: Variable, labels: Variable) -> float:
+def eval(out: Variable, labels: Variable) -> float:
     # evaluate the neural network outputs against non encoded data
-    Y = labels.numpy()
-    Y_hat = np.argmax(outputs, axis=1)
-    return float(np.sum(Y_hat == Y))
+    y_true = labels.numpy()
+    y_pred = np.argmax(out, axis=1)
+    return float(np.sum(y_pred == y_true))
 
 
-def batch_evaluation(net: BaseNet, dataloader: torch.utils.data.DataLoader) -> float:
-    # batch evaluation in case of larger datasets 
-    score = n = 0.0
-    for batch in dataloader:
-        n += len(batch['image'])
-        outputs = net(batch['image'])
-        if isinstance(outputs, torch.Tensor):
-            outputs = outputs.detach().numpy()
-        score += evaluate(outputs, batch['label'][:, 0])
+def batch_eval(net: BaseNet, dataloader: torch.utils.data.DataLoader) -> float:
+    # batch evaluation in case of larger datasets
+    num_samples = 0.0
+    eval_score = 0.0
+    for b in dataloader:
+        num_samples += len(b['image'])
+        out = net(b['image'])
+        if isinstance(out, torch.Tensor):
+            out = out.detach().numpy()
+        eval_score += eval(out, b['label'][:, 0])
 
-    return score / n
+    return eval_score / num_samples
 
 
-def validate():
+def val():
+    """
+    Validate the model with the test set
+    :return:
+    """
+
+    # Specify network to be used and model to be loaded
     trainloader, testloader, _, _ = get_train_test_loader()
-    net = SmallNet().float()
+    net = BaseNet().float()
 
-    pretrained_model = torch.load("models/model_params_SmallNet2.pth")
-    net.load_state_dict(pretrained_model)
+    model = torch.load("models/model_params_SmallNet2.pth")
+    net.load_state_dict(model)
 
-    print('=' * 10, 'Pytorch', '=' * 10)
-    train_acc = batch_evaluation(net, trainloader) * 100
-    print('Training accuracy " %.1f' % train_acc)
-    test_acc = batch_evaluation(net, testloader) * 100
-    print('Validation accuracy " %.1f' % test_acc)
+    train_acc = batch_eval(net, trainloader) * 100
+    test_acc = batch_eval(net, testloader) * 100
+    print('==========', 'Pytorch', '==========')
+    print(f'Training accuracy {train_acc}')
+    print(f'Validation accuracy {test_acc}')
 
     trainloader, testloader, _, _ = get_train_test_loader(1)
 
     # export to onnx 
-    fname = 'signlanguage.onnx'
-    dummy = torch.randn(1, 1, 28, 28)
-    torch.onnx.export(net, dummy, fname, input_names=['input'])
+    onnx_file = 'signlanguage.onnx'
+    template = torch.randn(1, 1, 28, 28)
+    torch.onnx.export(net, template, onnx_file, input_names=['input'])
 
     # exported model 
-    model = onnx.load(fname)
-    onnx.checker.check_model(model)
+    onnx_model = onnx.load(onnx_file)
+    onnx.checker.check_model(onnx_model)
 
     # create runnable 
-    ort_session = ort.InferenceSession(fname)
-    net = lambda inp: ort_session.run(None, {'input': inp.data.numpy()})[0]
+    onnx_sess = ort.InferenceSession(onnx_file)
+    net = lambda x: onnx_sess.run(None, {'input': x.data.numpy()})[0]
 
-    print('=' * 10, 'ONNX', '=' * 10)
-    train_acc = batch_evaluation(net, trainloader) * 100
-    print('Training accuracy: %.1f' % train_acc)
-    test_acc = batch_evaluation(net, testloader) * 100
-    print('Validation accuracy: %.1f' % test_acc)
+    train_acc = batch_eval(net, trainloader) * 100
+    test_acc = batch_eval(net, testloader) * 100
+    print('==========', 'Onnx', '==========')
+    print(f'Training accuracy {train_acc}')
+    print(f'Validation accuracy {test_acc}')
 
 
-def validate_asl_set():
+def val_asl_set():
     _, testloader, _, _ = get_train_test_loader()
     net = BaseNet().float()
 
-    pretrained_model = torch.load("models/model_params_BaseNet_ASL.pth")
+    pretrained_model = torch.load("models/model_params_BaseNet.pth")
     net.load_state_dict(pretrained_model)
 
-    # print('=' * 10, 'Pytorch', '=' * 10)
-    test_acc = batch_evaluation(net, testloader) * 100
+    test_acc = batch_eval(net, testloader) * 100
     print(f'Validation accuracy: {test_acc}')
-
-    # testloader, _ = get_test_loader(1)
-    #
-    # # export to onnx
-    # fname = 'signlanguage_asl.onnx'
-    # dummy = torch.randn(1, 1, 28, 28)
-    # torch.onnx.export(net, dummy, fname, input_names=['input'])
-    #
-    # # exported model
-    # model = onnx.load(fname)
-    # onnx.checker.check_model(model)
-    #
-    # # create runnable
-    # ort_session = ort.InferenceSession(fname)
-    # net = lambda inp: ort_session.run(None, {'input': inp.data.numpy()})[0]
-    #
-    # print('=' * 10, 'ONNX', '=' * 10)
-    # test_acc = batch_evaluation(net, testloader) * 100
-    # print('Validation accuracy: %.1f' % test_acc)
 
 
 if __name__ == '__main__':
-    validate_asl_set()
+    val()
     # for x in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']:
     #     validate_asl_set(x)

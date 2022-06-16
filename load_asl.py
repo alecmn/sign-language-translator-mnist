@@ -1,11 +1,8 @@
 import os
 
 import cv2
-import tqdm as tqdm
 from torch.utils.data import Dataset
-from torch.autograd import Variable
 import torchvision.transforms as transforms
-import torch.nn as nn
 import numpy as np
 import torch
 import skimage
